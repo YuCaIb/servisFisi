@@ -1,0 +1,22 @@
+[
+    {
+        "firma": "Avcı Teknik Hırdavat",
+        "telefon": "535 471 27 27",
+        "eposta": "avciteknik35@gmail.com",
+        "adres": "Yedi Eylül Mah. 5528 sok. No:18 Torbalı/İzmir",
+        "musteri": "12",
+        "musteri_tel": "12",
+        "fis_no": "1",
+        "giris_tarihi": "12.06.2025",
+        "onarim": "12",
+        "kalemler": [
+            {
+                "parca": "21",
+                "fiyat": "11",
+                "adet": "1",
+                "ara_toplam": "11.00"
+            }
+        ],
+        "toplam": "11.00 TL"
+    }
+]
