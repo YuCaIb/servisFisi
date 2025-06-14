@@ -2,8 +2,8 @@ from fpdf import FPDF
 import os
 
 
-def pdf_olustur_jsondan(veri, font_path="Goruntule/arial.ttf", font_path_bold="Goruntule/arialbd.ttf",
-                        font_path_italic="Goruntule/ariali.ttf", output_dir="."):
+def pdf_olustur_jsondan(veri, font_path="arial.ttf", font_path_bold="arialbd.ttf",
+                        font_path_italic="ariali.ttf", output_dir="."):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
@@ -28,8 +28,10 @@ def pdf_olustur_jsondan(veri, font_path="Goruntule/arial.ttf", font_path_bold="G
     pdf.set_y(45)
 
     # Müşteri ve servis bilgileri
-    pdf.cell(200, 10, f"Müşteri: {veri['musteri']}", ln=True)
-    pdf.cell(200, 10, f"Müşteri Telefon: {veri['musteri_tel']}", ln=True)
+    pdf.cell(200, 10, f"Müşteri Firma: {veri.get('musteri_firma', '')}", ln=True)
+    pdf.cell(200, 10, f"Müşteri: {veri.get('musteri', '')}", ln=True)
+    pdf.cell(200, 10, f"Müşteri Mail: {veri.get('musteri_mail', '')}", ln=True)
+    pdf.cell(200, 10, f"Müşteri Telefon: {veri.get('musteri_tel', '')}", ln=True)
     pdf.cell(200, 10, f"Servis Fiş No: {veri['fis_no']}", ln=True)
     pdf.cell(200, 10, f"Giriş Tarihi: {veri['giris_tarihi']}", ln=True)
 
@@ -52,8 +54,13 @@ def pdf_olustur_jsondan(veri, font_path="Goruntule/arial.ttf", font_path_bold="G
         pdf.cell(30, 10, kalem["ara_toplam"], border=1)
         pdf.ln()
 
+    # Toplamlar
     pdf.ln(5)
-    pdf.cell(200, 10, f"Toplam: {veri['toplam']} TL", ln=True)
+    pdf.cell(200, 10, f"Toplam: {veri['toplam']}", ln=True)
+
+    # KDV Dahil
+    if "kdv_dahil" in veri:
+        pdf.cell(200, 10, f"KDV Dahil: {veri['kdv_dahil']}", ln=True)
 
     # Sayfa numarası
     pdf.set_y(-15)

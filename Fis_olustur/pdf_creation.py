@@ -56,8 +56,11 @@ def pdf_olustur(self):
 
     # Müşteri Bilgileri
     pdf.ln(5)
+    pdf.cell(200, 10, f"Firma: {self.musteri_firma.get()}", ln=True)
     pdf.cell(200, 10, f"Müşteri: {self.musteri_adi.get()}", ln=True)
+    pdf.cell(200, 10, f"Müşteri Mail: {self.musteri_mail.get()}", ln=True)
     pdf.cell(200, 10, f"Müşteri Telefon: {self.musteri_tel.get()}", ln=True)
+
 
     # Servis Bilgileri
     pdf.ln(5)
@@ -90,6 +93,7 @@ def pdf_olustur(self):
 
         toplam += ara_toplam
 
+
         pdf.cell(60, 10, p.get(), border=1)
         pdf.cell(40, 10, f"{fiyat:.2f}", border=1)
         pdf.cell(20, 10, f"{adet:.0f}", border=1)
@@ -99,6 +103,9 @@ def pdf_olustur(self):
     # Toplam
     pdf.ln(5)
     pdf.cell(200, 10, f"Toplam: {toplam:.2f} TL", ln=True)
+
+    kdv_dahil = toplam * 1.20
+    pdf.cell(200, 10, f"KDV Dahil: {kdv_dahil:.2f} TL", ln=True)
 
     # Bilgilendirme ve İmza Alanı
     pdf.ln(10)
@@ -115,7 +122,9 @@ def pdf_olustur(self):
         "telefon": self.telefon.get(),
         "eposta": self.eposta.get(),
         "adres": self.adres.get(),
+        "musteri firma": self.musteri_firma.get(),
         "musteri": self.musteri_adi.get(),
+        "musteri_mail": self.musteri_mail.get(),
         "musteri_tel": self.musteri_tel.get(),
         "fis_no": self.fis_no.get(),
         "giris_tarihi": self.giris_tarihi.get(),
@@ -129,7 +138,8 @@ def pdf_olustur(self):
             }
             for p, f, a, t in self.kalemler
         ],
-        "toplam": self.toplam_label.cget("text").replace("Toplam: ", "")
+        "toplam": self.toplam_label.cget("text").replace("Toplam: ", ""),
+        "kdv_dahil": self.kdv_label.cget("text").replace("KDV: ", "")
     }
 
     json_dosya = "servis_kayitlari.json"

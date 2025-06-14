@@ -40,31 +40,37 @@ class ServisFisiApp:
         self.musteri_adi = tk.Entry(root, width=40)
         self.musteri_adi.grid(row=4, column=1)
 
-        tk.Label(root, text="Müşteri Telefon:").grid(row=5, column=0)
+        tk.Label(root, text="Müşteri Firma:").grid(row=5, column=0)
+        self.musteri_firma = tk.Entry(root, width=40)
+        self.musteri_firma.grid(row=5, column=1)
+
+        tk.Label(root, text="Müşteri Telefon:").grid(row=6, column=0)
         self.musteri_tel = tk.Entry(root, width=40)
-        self.musteri_tel.grid(row=5, column=1)
+        self.musteri_tel.grid(row=6, column=1)
+
+        tk.Label(root, text="Müşteri Mail:").grid(row=7, column=0)
+        self.musteri_mail = tk.Entry(root, width=40)
+        self.musteri_mail.grid(row=7, column=1)
 
         # Servis Bilgileri
-        tk.Label(root, text="Servis Fiş No:").grid(row=6, column=0)
+        tk.Label(root, text="Servis Fiş No:").grid(row=8, column=0)
         self.fis_no = tk.Entry(root, width=40)
-
         sonraki_fis_no = en_son_fis_noyu_getir()
         self.fis_no.insert(0, str(sonraki_fis_no))
+        self.fis_no.grid(row=8, column=1)
 
-        self.fis_no.grid(row=6, column=1)
-
-        tk.Label(root, text="Giriş Tarihi:").grid(row=7, column=0)
+        tk.Label(root, text="Giriş Tarihi:").grid(row=9, column=0)
         self.giris_tarihi = tk.Entry(root, width=40)
         self.giris_tarihi.insert(0, datetime.now().strftime("%d.%m.%Y"))
-        self.giris_tarihi.grid(row=7, column=1)
+        self.giris_tarihi.grid(row=9, column=1)
 
-        tk.Label(root, text="Onarım Açıklaması:").grid(row=8, column=0)
+        tk.Label(root, text="Onarım Açıklaması:").grid(row=10, column=0)
         self.onarim_aciklama = tk.Text(root, width=30, height=4)
-        self.onarim_aciklama.grid(row=8, column=1)
+        self.onarim_aciklama.grid(row=10, column=1)
 
         # Hizmet Kalemleri Frame
         self.kalemler_frame = tk.Frame(root)
-        self.kalemler_frame.grid(row=9, column=0, columnspan=4, pady=10)
+        self.kalemler_frame.grid(row=11, column=0, columnspan=4, pady=10)
 
         # Başlıklar
         tk.Label(self.kalemler_frame, text="Parça Adı").grid(row=0, column=0)
@@ -82,14 +88,17 @@ class ServisFisiApp:
 
         # Toplam Label (kalemler_frame içinde, Satır Ekle butonunun altında)
         self.toplam_label = tk.Label(self.kalemler_frame, text="Toplam: 0.00 TL", font=("Arial", 12, "bold"))
-        self.toplam_label.grid(row=101, column=0, columnspan=4, pady=(10, 0))
+        self.toplam_label.grid(row=101, column=0, columnspan=2, sticky="w", pady=(10, 0), padx=5)
+
+        self.kdv_label = tk.Label(self.kalemler_frame, text="KDV Dahil: 0.00 TL", font=("Arial", 12))
+        self.kdv_label.grid(row=101, column=2, columnspan=2, sticky="e", pady=(10, 0), padx=5)
 
         # Logo
         self.logo_path = "./logo.png" if os.path.exists("./logo.png") else ""
-        tk.Button(root, text="Logo Yükle (PNG)", command=self.yukle_logo).grid(row=10, column=0, columnspan=2, pady=5)
+        tk.Button(root, text="Logo Yükle (PNG)", command=self.yukle_logo).grid(row=12, column=0, columnspan=2, pady=5)
 
-        # Devam
-        tk.Button(root, text="Devam Et", command=self.devam_et).grid(row=11, column=0, columnspan=2, pady=10)
+        # Devam Et
+        tk.Button(root, text="Devam Et", command=self.devam_et).grid(row=13, column=0, columnspan=2, pady=10)
 
     def sayi_kontrol(self, value):
         # Sayısal değer kontrolü (boş da olabilir)
@@ -129,8 +138,9 @@ class ServisFisiApp:
                 ara_toplam = 0
             ara_toplam_label.config(text=f"{ara_toplam:.2f}")
             toplam += ara_toplam
+        kdv_dahil = toplam * 1.20
         self.toplam_label.config(text=f"Toplam: {toplam:.2f} TL")
-
+        self.kdv_label.config(text=f"KDV Dahil: {kdv_dahil:.2f} TL")
     def yukle_logo(self):
         self.logo_path = filedialog.askopenfilename(filetypes=[("PNG Dosyası", "*.png")])
         if self.logo_path:

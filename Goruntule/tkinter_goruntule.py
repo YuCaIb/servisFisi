@@ -3,7 +3,7 @@ from tkinter import ttk
 import json
 import os
 from pdf_json import pdf_olustur_jsondan  # senin JSON'dan PDF fonksiyonun
-
+from json_to_excel import json_file_to_excel
 
 def json_verileri_yukle(json_yolu="servis_kayitlari.json"):
     if os.path.exists(json_yolu):
@@ -21,19 +21,24 @@ class ServisKayitlariGoster:
         for veri in tum_veriler:
             if (
                     aranan in veri["fis_no"].lower()
-                    or aranan in veri["musteri"].lower()
-                    or aranan in veri["musteri_tel"].lower()
-                    or aranan in veri["onarim"].lower()
-                    or aranan in veri["giris_tarihi"].lower()
-                    or aranan in veri["toplam"].lower()
+                    or aranan in veri.get("musteri", "").lower()
+                    or aranan in veri.get("musteri_firma", "").lower()
+                    or aranan in veri.get("musteri_tel", "").lower()
+                    or aranan in veri.get("musteri_mail", "").lower()
+                    or aranan in veri.get("onarim", "").lower()
+                    or aranan in veri.get("giris_tarihi", "").lower()
+                    or aranan in veri.get("toplam", "").lower()
+                    or aranan in veri.get("kdv_dahil", "").lower()
             ):
                 self.tree.insert("", tk.END, values=(
-                    veri["fis_no"],
-                    veri["musteri"],
-                    veri["musteri_tel"],
-                    veri["onarim"],
-                    veri["giris_tarihi"],
-                    veri["toplam"]
+                    veri.get("fis_no", ""),
+                    veri.get("musteri_firma", ""),
+                    veri.get("musteri", ""),
+                    veri.get("musteri_tel", ""),
+                    veri.get("musteri_mail", ""),
+                    veri.get("onarim", ""),
+                    veri.get("giris_tarihi", ""),
+                    veri.get("toplam", "")
                 ))
 
     def __init__(self, root):
@@ -52,11 +57,13 @@ class ServisKayitlariGoster:
         self.arama_entry = tk.Entry(arama_frame, textvariable=self.arama_var, width=40)
         self.arama_entry.pack(side=tk.LEFT, padx=5)
 
-        self.tree = ttk.Treeview(root, columns=("FisNo", "Müşteri", "Telefon", "Açıklama", "Tarih", "Toplam"),
+        self.tree = ttk.Treeview(root, columns=("FisNo","Müşteri Firma", "Müşteri", "Telefon", "Açıklama", "Mail", "Tarih", "Toplam"),
                                  show="headings")
         self.tree.heading("FisNo", text="Fiş No")
+        self.tree.heading("Müşteri Firma", text="Müşteri Firma")
         self.tree.heading("Müşteri", text="Müşteri")
         self.tree.heading("Telefon", text="Telefon")
+        self.tree.heading("Mail", text="Mail")
         self.tree.heading("Açıklama", text="Açıklama")
         self.tree.heading("Tarih", text="Giriş Tarihi")
         self.tree.heading("Toplam", text="Toplam Tutar")
@@ -68,17 +75,31 @@ class ServisKayitlariGoster:
         self.button = tk.Button(root, text="Seçili Kaydı PDF Olarak Üret", command=self.pdf_uret)
         self.button.pack(pady=5)
 
+        # Excel'e Aktar butonu
+        self.excel_button = tk.Button(root, text="Excel'e Aktar", command=self.excele_aktar)
+        self.excel_button.pack(pady=5)
+
     def kayitlari_doldur(self):
         veriler = json_verileri_yukle()
         for veri in veriler:
             self.tree.insert("", tk.END, values=(
-                veri["fis_no"],
-                veri["musteri"],
-                veri["musteri_tel"],
-                veri["onarim"],
-                veri["giris_tarihi"],
-                veri["toplam"]
+                veri.get("fis_no", ""),
+                veri.get("musteri_firma", ""),
+                veri.get("musteri", ""),
+                veri.get("musteri_tel", ""),
+                veri.get("musteri_mail", ""),
+                veri.get("onarim", ""),
+                veri.get("giris_tarihi", ""),
+                veri.get("toplam", ""),
+                veri.get("kdv_dahil", "")
             ))
+
+    def excele_aktar(self):
+        try:
+            json_file_to_excel("servis_kayitlari.json")  # Eğer parametre alıyorsa dosya adını geç: json_file_to_excel("servis_kayitlari.json")
+            print("Excel'e aktarıldı.")
+        except Exception as e:
+            print("Excel aktarımı sırasında hata:", e)
 
     def pdf_uret(self):
         secili = self.tree.selection()
