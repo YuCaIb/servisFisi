@@ -5,6 +5,7 @@ import os
 from pdf_json import pdf_olustur_jsondan  # senin JSON'dan PDF fonksiyonun
 from json_to_excel import json_file_to_excel
 
+
 def json_verileri_yukle(json_yolu="servis_kayitlari.json"):
     if os.path.exists(json_yolu):
         with open(json_yolu, "r", encoding="utf-8") as f:
@@ -50,14 +51,24 @@ class ServisKayitlariGoster:
         self.arama_var = tk.StringVar()
         self.arama_var.trace("w", self.filtrele)
 
+        self.fisno_var = tk.StringVar()
+        self.fisno_var.trace("w", self.fisno_filtrele)
+
         arama_frame = tk.Frame(root)
         arama_frame.pack(pady=5)
 
+        # Yeni "Fiş Ara" kutusu (sola)
+        tk.Label(arama_frame, text="Fiş Ara:").pack(side=tk.LEFT, padx=(0, 2))
+        self.fisno_entry = tk.Entry(arama_frame, textvariable=self.fisno_var, width=15)
+        self.fisno_entry.pack(side=tk.LEFT, padx=(0, 15))
+
+        # Mevcut "Ara" kutusu (sağa alındı)
         tk.Label(arama_frame, text="Ara:").pack(side=tk.LEFT)
         self.arama_entry = tk.Entry(arama_frame, textvariable=self.arama_var, width=40)
         self.arama_entry.pack(side=tk.LEFT, padx=5)
 
-        self.tree = ttk.Treeview(root, columns=("FisNo","Müşteri Firma", "Müşteri", "Telefon", "Açıklama", "Mail", "Tarih", "Toplam"),
+        self.tree = ttk.Treeview(root, columns=(
+        "FisNo", "Müşteri Firma", "Müşteri", "Telefon", "Açıklama", "Mail", "Tarih", "Toplam"),
                                  show="headings")
         self.tree.heading("FisNo", text="Fiş No")
         self.tree.heading("Müşteri Firma", text="Müşteri Firma")
@@ -94,9 +105,28 @@ class ServisKayitlariGoster:
                 veri.get("kdv_dahil", "")
             ))
 
+    def fisno_filtrele(self, *args):
+        aranan = self.fisno_var.get().lower()
+        self.tree.delete(*self.tree.get_children())
+
+        tum_veriler = json_verileri_yukle()
+        for veri in tum_veriler:
+            if aranan in veri.get("fis_no", "").lower():
+                self.tree.insert("", tk.END, values=(
+                    veri.get("fis_no", ""),
+                    veri.get("musteri_firma", ""),
+                    veri.get("musteri", ""),
+                    veri.get("musteri_tel", ""),
+                    veri.get("musteri_mail", ""),
+                    veri.get("onarim", ""),
+                    veri.get("giris_tarihi", ""),
+                    veri.get("toplam", "")
+                ))
+
     def excele_aktar(self):
         try:
-            json_file_to_excel("servis_kayitlari.json")  # Eğer parametre alıyorsa dosya adını geç: json_file_to_excel("servis_kayitlari.json")
+            json_file_to_excel(
+                "servis_kayitlari.json")  # Eğer parametre alıyorsa dosya adını geç: json_file_to_excel("servis_kayitlari.json")
             print("Excel'e aktarıldı.")
         except Exception as e:
             print("Excel aktarımı sırasında hata:", e)
