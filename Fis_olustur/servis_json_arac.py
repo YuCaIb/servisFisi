@@ -2,7 +2,7 @@ import os
 import json
 
 
-def en_son_fis_noyu_getir(json_dosya="servis_kayitlari.json"):
+def en_son_fis_noyu_getir(json_dosya="goruntule/jsons/servis_kayitlari.json"):
     if not os.path.exists(json_dosya):
         return 1  # İlk kayıt için 1 başlasın
 
@@ -18,4 +18,3 @@ def en_son_fis_noyu_getir(json_dosya="servis_kayitlari.json"):
             continue
 
     return max(fis_nolar) + 1 if fis_nolar else 1
-

@@ -1,0 +1,3 @@
+1 - bütün uygulamayı tek bir pencereye al.
+2 - ekranlar güncellensin.
+3 -

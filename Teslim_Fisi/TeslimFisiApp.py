@@ -95,8 +95,10 @@ class TeslimFisiApp:
             ]
         }
 
-        # JSON kayıt
-        kayit_dosyasi = "teslim_fisi_kayitlar.json"
+        json_klasoru = "goruntule/jsons"
+        os.makedirs(json_klasoru, exist_ok=True)
+        kayit_dosyasi = os.path.join(json_klasoru, "teslim_fisi_kayitlar.json")
+
         if os.path.exists(kayit_dosyasi):
             with open(kayit_dosyasi, "r", encoding="utf-8") as f:
                 mevcut = json.load(f)
@@ -115,7 +117,6 @@ class TeslimFisiApp:
         pdf.add_page()
         pdf.set_auto_page_break(auto=True, margin=15)
 
-        # Font tanımları
         font_path = "./arial.ttf"
         font_path_bold = "./arialbd.ttf"
         font_path_italic = "./ariali.ttf"
@@ -125,37 +126,30 @@ class TeslimFisiApp:
         pdf.add_font("ArialUnicode", "I", font_path_italic, uni=True)
         pdf.set_font("ArialUnicode", size=12)
 
-        # Logo
         logo_bottom = 10
         if self.logo_path and os.path.exists(self.logo_path):
             pdf.image(self.logo_path, x=10, y=10, w=50)
             logo_bottom = 10 + 40
 
-        # Firma Bilgileri (logo sağında)
         pdf.set_xy(70, 10)
         pdf.multi_cell(0, 7, f"{veri['firma']}\n{veri['adres']}\nTel: {veri['telefon']}  E-posta: {veri['eposta']}")
 
-        # Sağ üst köşeye tarih
         pdf.set_xy(150, 10)
         pdf.set_font("ArialUnicode", size=11)
         pdf.cell(50, 10, f"Tarih: {veri['tarih']}", ln=True, align="R")
 
-        # Yatay çizgi (logonun altından sonra)
         y_sayin_basla = logo_bottom + 10
         pdf.set_line_width(0.3)
         pdf.line(10, y_sayin_basla, 200, y_sayin_basla)
 
-        # "Sayın: ..." kısmı
         pdf.set_xy(10, y_sayin_basla + 5)
         pdf.set_font("ArialUnicode", size=14, style='B')
         pdf.cell(0, 10, f"Sayın : {veri['musteri_ad']}", ln=True)
 
-        # Başlık
         pdf.set_y(y_sayin_basla + 20)
         pdf.set_font("ArialUnicode", size=14, style="B")
         pdf.cell(0, 10, "MALZEME TESLİM FİŞİ", ln=True, align="C")
 
-        # Tablo başlığı
         pdf.ln(5)
         pdf.set_font("ArialUnicode", size=12, style="B")
         pdf.cell(140, 10, "CİNSİ", border=1)
@@ -172,9 +166,15 @@ class TeslimFisiApp:
         pdf.set_font("ArialUnicode", style="I")
         pdf.cell(0, 10, "TESLİM ALAN", ln=True, align="L")
 
-        dosya_adi = f"teslim_fisi_{veri['musteri_ad'].replace(' ', '_')}_{veri['tarih'].replace('.', '-')}.pdf"
-        pdf.output(dosya_adi)
-        print("PDF oluşturuldu:", dosya_adi)
+        pdf_klasoru = "teslim_fisleri"
+        os.makedirs(pdf_klasoru, exist_ok=True)
+
+        zaman_damgasi = datetime.now().strftime("%Y%m%d_%H%M%S")
+        dosya_adi = f"teslim_fisi_{veri['musteri_ad'].replace(' ', '_')}_{zaman_damgasi}.pdf"
+        dosya_yolu = os.path.join(pdf_klasoru, dosya_adi)
+
+        pdf.output(dosya_yolu)
+        print("PDF oluşturuldu:", dosya_yolu)
 
 
 if __name__ == "__main__":

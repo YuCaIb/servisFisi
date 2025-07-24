@@ -1,9 +1,8 @@
 from fpdf import FPDF
 import os
 
-
 def pdf_olustur_jsondan(veri, font_path="arial.ttf", font_path_bold="arialbd.ttf",
-                        font_path_italic="ariali.ttf", output_dir="."):
+                        font_path_italic="ariali.ttf", output_dir="./Goruntule/pdf"):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
@@ -67,7 +66,10 @@ def pdf_olustur_jsondan(veri, font_path="arial.ttf", font_path_bold="arialbd.ttf
     pdf.set_font("ArialUnicode", size=10, style="I")
     pdf.cell(0, 10, f"Sayfa {pdf.page_no()}", align="C")
 
-    # Kaydet
+    # Klasör kontrolü ve oluşturulması
+    os.makedirs(output_dir, exist_ok=True)
+
+    # PDF'i Kaydet
     dosya_adi = os.path.join(output_dir, f"servis_fisi_{veri['fis_no']}_yeniden.pdf")
     pdf.output(dosya_adi)
     print(f"PDF yeniden oluşturuldu: {dosya_adi}")

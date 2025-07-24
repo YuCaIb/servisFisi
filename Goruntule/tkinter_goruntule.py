@@ -2,11 +2,11 @@ import tkinter as tk
 from tkinter import ttk
 import json
 import os
-from pdf_json import pdf_olustur_jsondan  # senin JSON'dan PDF fonksiyonun
+from pdf_json import pdf_olustur_jsondan
 from json_to_excel import json_file_to_excel
 
 
-def json_verileri_yukle(json_yolu="servis_kayitlari.json"):
+def json_verileri_yukle(json_yolu="goruntule/jsons/servis_kayitlari.json"):
     if os.path.exists(json_yolu):
         with open(json_yolu, "r", encoding="utf-8") as f:
             return json.load(f)
@@ -126,7 +126,7 @@ class ServisKayitlariGoster:
     def excele_aktar(self):
         try:
             json_file_to_excel(
-                "servis_kayitlari.json")  # Eğer parametre alıyorsa dosya adını geç: json_file_to_excel("servis_kayitlari.json")
+                "goruntule/jsons/servis_kayitlari.json")
             print("Excel'e aktarıldı.")
         except Exception as e:
             print("Excel aktarımı sırasında hata:", e)
