@@ -1,7 +1,10 @@
+import subprocess
+import sys
 import tkinter as tk
 from tkinter import ttk
 from utils.io_utils import json_yukle, pdf_servis_fisi_olustur, json_to_excel
 import os
+
 
 class GoruntuleApp:
     def __init__(self, master):
@@ -27,12 +30,14 @@ class GoruntuleApp:
         entry.pack(side=tk.LEFT, padx=5)
 
         self.tree = ttk.Treeview(self.master, columns=(
-            "Fiş No", "Müşteri Firma", "Müşteri", "Telefon", "Mail", "Tarih", "Toplam"), show="headings")
+            "Fiş No", "Müşteri Firma", "Açıklama", "Müşteri", "Telefon", "Tarih", "Toplam"), show="headings")
 
         for col in self.tree["columns"]:
             self.tree.heading(col, text=col)
 
         self.tree.pack(fill=tk.BOTH, expand=True)
+
+        self.tree.bind("<Double-1>", self.pdf_ac)  # double click
 
         btn_frame = tk.Frame(self.master)
         btn_frame.pack(pady=5)
@@ -46,9 +51,9 @@ class GoruntuleApp:
             self.tree.insert("", tk.END, values=(
                 veri.get("fis_no", ""),
                 veri.get("musteri_firma", ""),
+                veri.get("onarim", ""),
                 veri.get("musteri", ""),
                 veri.get("musteri_tel", ""),
-                veri.get("musteri_mail", ""),
                 veri.get("giris_tarihi", ""),
                 veri.get("toplam", "")
             ))
@@ -61,9 +66,9 @@ class GoruntuleApp:
                 self.tree.insert("", tk.END, values=(
                     veri.get("fis_no", ""),
                     veri.get("musteri_firma", ""),
+                    veri.get("onarim", ""),
                     veri.get("musteri", ""),
                     veri.get("musteri_tel", ""),
-                    veri.get("musteri_mail", ""),
                     veri.get("giris_tarihi", ""),
                     veri.get("toplam", "")
                 ))
@@ -90,3 +95,23 @@ class GoruntuleApp:
             self.kayitlari_doldur()
             self._prev_data_len = yeni
         self.master.after(3000, self.oto_guncelle)
+
+    def pdf_ac(self, event):
+        item = self.tree.identify_row(event.y)
+        if not item:
+            return
+        index = self.tree.index(item)
+        veriler = json_yukle(self.json_path)
+        if index < len(veriler):
+            veri = veriler[index]
+        path = os.path.join(self.pdf_dir, f"servis_fisi_{veri['fis_no']}_yeniden.pdf")
+        if not os.path.exists(path):
+            os.makedirs(self.pdf_dir, exist_ok=True)
+        pdf_servis_fisi_olustur(veri, path)
+        # PDF aç
+        if sys.platform == "win32":
+            os.startfile(path)
+        elif sys.platform == "darwin":
+            subprocess.call(["open", path])
+        else:
+            subprocess.call(["xdg-open", path])
