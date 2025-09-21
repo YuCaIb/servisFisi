@@ -1,3 +1,12 @@
 1 - bütün uygulamayı tek bir pencereye al.
 2 - ekranlar güncellensin.
 3 -
+
+
+1. İlk kayıt açarken isim yada firma yazınca otomatik yazma işi kolaysa olur.
+2. yazılan fişi kayıt edince tekrar birşeyler ekleyebileyim
+3. servise ilk gelenleri kayıt yapıp sonra açınca boş aynı fiş nosuna kayıt yapayım
+4. serviste olan parça bekleyen yapılan ve teslim edilen ürünler belli olursae
+
+
+tamamlandı.

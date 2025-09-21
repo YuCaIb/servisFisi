@@ -1,7 +1,7 @@
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, ttk
 from datetime import datetime
-from utils.io_utils import json_kaydet, pdf_servis_fisi_olustur, get_next_fis_no
+from utils.io_utils import json_kaydet, pdf_servis_fisi_olustur, get_next_fis_no, json_yukle
 
 
 class ServisFisiApp:
@@ -24,22 +24,77 @@ class ServisFisiApp:
 
         self.kalemler = []
 
+        # Otomatik doldurma için önceki kayıtları yükle
+        self.musteri_list, self.firma_list, self.firma_dict = self.get_previous_customers()
+
         self.build_ui()
+
+    def get_previous_customers(self):
+        veriler = json_yukle("data/jsons/servis_kayitlari.json")
+        musteri_set = set()
+        firma_set = set()
+        firma_dict = {}
+
+        for v in veriler:
+            firma = v.get("musteri_firma")
+            musteri = v.get("musteri")
+            tel = v.get("musteri_tel")
+            mail = v.get("musteri_mail")
+
+            if musteri:
+                musteri_set.add(musteri)
+            if firma:
+                firma_set.add(firma)
+                if firma not in firma_dict:
+                    firma_dict[firma] = []
+                firma_dict[firma].append({
+                    "musteri": musteri,
+                    "tel": tel,
+                    "mail": mail
+                })
+
+        return list(musteri_set), list(firma_set), firma_dict
 
     def build_ui(self):
         row = 0
         for label, var in [
             ("Firma Adı", self.firma_adi), ("Telefon", self.telefon),
             ("E-Posta", self.eposta), ("Adres", self.adres),
-            ("Müşteri Adı", self.musteri_adi), ("Müşteri Firma", self.musteri_firma),
-            ("Müşteri Tel", self.musteri_tel), ("Müşteri Mail", self.musteri_mail),
-            ("Onarım Açıklaması", self.onarim),
-            ("Fiş No", self.fis_no), ("Giriş Tarihi", self.giris_tarihi)
         ]:
             tk.Label(self.master, text=label).grid(row=row, column=0, sticky="w")
             tk.Entry(self.master, textvariable=var, width=50).grid(row=row, column=1)
             row += 1
 
+        # --- Müşteri Adı (Combobox + filtreleme) ---
+        tk.Label(self.master, text="Müşteri Adı").grid(row=row, column=0, sticky="w")
+        self.musteri_combo = ttk.Combobox(self.master, textvariable=self.musteri_adi, width=47)
+        self.musteri_combo["values"] = self.musteri_list
+        self.musteri_combo.grid(row=row, column=1)
+        self.musteri_combo.bind("<KeyRelease>", self.filter_musteri_list)
+        row += 1
+
+        # --- Müşteri Firma (Combobox + filtreleme + autofill) ---
+        tk.Label(self.master, text="Müşteri Firma").grid(row=row, column=0, sticky="w")
+        self.firma_combo = ttk.Combobox(self.master, textvariable=self.musteri_firma, width=47)
+        self.firma_combo["values"] = self.firma_list
+        self.firma_combo.grid(row=row, column=1)
+        self.firma_combo.bind("<<ComboboxSelected>>", self.autofill_customer)
+        self.firma_combo.bind("<KeyRelease>", self.filter_firma_list)
+        row += 1
+
+        # --- Diğer müşteri alanları ---
+        for label, var in [
+            ("Müşteri Tel", self.musteri_tel),
+            ("Müşteri Mail", self.musteri_mail),
+            ("Onarım Açıklaması", self.onarim),
+            ("Fiş No", self.fis_no),
+            ("Giriş Tarihi", self.giris_tarihi)
+        ]:
+            tk.Label(self.master, text=label).grid(row=row, column=0, sticky="w")
+            tk.Entry(self.master, textvariable=var, width=50).grid(row=row, column=1)
+            row += 1
+
+        # Kalemler tablosu
         self.kalem_frame = tk.Frame(self.master)
         self.kalem_frame.grid(row=row, column=0, columnspan=2, pady=5)
         tk.Label(self.kalem_frame, text="Parça Adı").grid(row=0, column=0)
@@ -56,6 +111,65 @@ class ServisFisiApp:
         tk.Button(self.master, text="Logo Yükle", command=self.load_logo).grid(row=row + 1, column=0)
         tk.Button(self.master, text="Kaydet & PDF", command=self.kaydet).grid(row=row + 1, column=1)
 
+    # --- Combobox filtreleme ---
+    def filter_firma_list(self, event=None):
+        typed = self.firma_combo.get().lower()
+        if typed == "":
+            data = self.firma_list
+        else:
+            data = [f for f in self.firma_list if typed in f.lower()]
+        self.firma_combo["values"] = data
+        if data:
+            self.firma_combo.event_generate('<Down>')
+
+    def filter_musteri_list(self, event=None):
+        typed = self.musteri_combo.get().lower()
+        if typed == "":
+            data = self.musteri_list
+        else:
+            data = [m for m in self.musteri_list if typed in m.lower()]
+        self.musteri_combo["values"] = data
+        if data:
+            self.musteri_combo.event_generate('<Down>')
+
+    # --- Firma seçilince müşteri otomatik doldurma ---
+    def autofill_customer(self, event=None):
+        firma = self.firma_combo.get()
+        if firma in self.firma_dict:
+            kayitlar = self.firma_dict[firma]
+            if len(kayitlar) == 1:
+                self.set_customer_fields(kayitlar[0])
+            else:
+                # Birden fazla müşteri varsa seçim penceresi aç
+                sec_pencere = tk.Toplevel(self.master)
+                sec_pencere.title(f"{firma} için müşteri seç")
+                sec_pencere.geometry("400x300")
+                sec_pencere.grab_set()
+
+                lb = tk.Listbox(sec_pencere, width=50, height=10)
+                lb.pack(pady=10, padx=10, fill="both", expand=True)
+
+                for k in kayitlar:
+                    lb.insert(tk.END, f"{k.get('musteri','')} - {k.get('tel','')} - {k.get('mail','')}")
+
+                def sec(event=None):
+                    idx = lb.curselection()
+                    if idx:
+                        self.set_customer_fields(kayitlar[idx[0]])
+                        sec_pencere.destroy()
+
+                tk.Button(sec_pencere, text="Seç", command=sec).pack(pady=5)
+                lb.bind("<Double-1>", sec)  # çift tıklama ile seçme
+
+    def set_customer_fields(self, data):
+        if data.get("musteri"):
+            self.musteri_adi.set(data["musteri"])
+        if data.get("tel"):
+            self.musteri_tel.set(data["tel"])
+        if data.get("mail"):
+            self.musteri_mail.set(data["mail"])
+
+    # --- Kalemler ---
     def add_kalem_row(self):
         row = len(self.kalemler) + 1
         parca = tk.Entry(self.kalem_frame, width=20)

@@ -163,3 +163,39 @@ def get_next_fis_no(json_path="data/jsons/servis_kayitlari.json"):
         return max(fis_nolar, default=0) + 1
     except:
         return 1
+
+
+######## Json Update ######
+
+def json_guncelle(fis_no, yeni_veri, json_path="data/jsons/servis_kayitlari.json"):
+    """
+    Belirtilen fis_no'ya ait kaydı yeni_veri ile günceller.
+    Eğer fis_no bulunmazsa hiçbir şey yapmaz.
+    """
+    if not os.path.exists(json_path):
+        print("JSON dosyası bulunamadı.")
+        return False
+
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            veriler = json.load(f)
+
+        guncellendi = False
+        for i, veri in enumerate(veriler):
+            if str(veri.get("fis_no")) == str(fis_no):
+                veriler[i] = yeni_veri
+                guncellendi = True
+                break
+
+        if guncellendi:
+            with open(json_path, "w", encoding="utf-8") as f:
+                json.dump(veriler, f, ensure_ascii=False, indent=4)
+            print(f"Fiş {fis_no} başarıyla güncellendi.")
+            return True
+        else:
+            print(f"Fiş {fis_no} bulunamadı.")
+            return False
+
+    except Exception as e:
+        print("JSON güncelleme hatası:", e)
+        return False
