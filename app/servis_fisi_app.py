@@ -119,8 +119,6 @@ class ServisFisiApp:
         else:
             data = [f for f in self.firma_list if typed in f.lower()]
         self.firma_combo["values"] = data
-        if data:
-            self.firma_combo.event_generate('<Down>')
 
     def filter_musteri_list(self, event=None):
         typed = self.musteri_combo.get().lower()
@@ -129,8 +127,6 @@ class ServisFisiApp:
         else:
             data = [m for m in self.musteri_list if typed in m.lower()]
         self.musteri_combo["values"] = data
-        if data:
-            self.musteri_combo.event_generate('<Down>')
 
     # --- Firma seçilince müşteri otomatik doldurma ---
     def autofill_customer(self, event=None):
@@ -150,7 +146,7 @@ class ServisFisiApp:
                 lb.pack(pady=10, padx=10, fill="both", expand=True)
 
                 for k in kayitlar:
-                    lb.insert(tk.END, f"{k.get('musteri','')} - {k.get('tel','')} - {k.get('mail','')}")
+                    lb.insert(tk.END, f"{k.get('musteri', '')} - {k.get('tel', '')} - {k.get('mail', '')}")
 
                 def sec(event=None):
                     idx = lb.curselection()

@@ -199,3 +199,103 @@ def json_guncelle(fis_no, yeni_veri, json_path="data/jsons/servis_kayitlari.json
     except Exception as e:
         print("JSON güncelleme hatası:", e)
         return False
+
+
+#### Stok Takip ve Stok Güncelleme
+
+STOK_PATH = "data/stok/Stok_Takip.xlsx"
+
+def stok_excel_olustur():
+    """Stok Excel dosyası yoksa temel kolonlarla oluşturur."""
+    os.makedirs(os.path.dirname(STOK_PATH), exist_ok=True)
+    if not os.path.exists(STOK_PATH):
+        df = pd.DataFrame(columns=["Ürün Adı", "Miktar", "Raf No", "Birim"])
+        df.to_excel(STOK_PATH, index=False)
+
+def stok_yukle():
+    """Stok verilerini DataFrame olarak yükler, yoksa oluşturur."""
+    stok_excel_olustur()
+    try:
+        df = pd.read_excel(STOK_PATH, engine="openpyxl")
+        # Kolonlar doğru sırada değilse düzenle
+        expected = ["Kod", "Isim", "Marka", "Model", "Raf", "Mevcut"]
+        for col in expected:
+            if col not in df.columns:
+                df[col] = ""
+        df = df[expected]
+        return df
+    except PermissionError:
+        print("Stok dosyası başka bir programda açık. Lütfen kapatın.")
+        return pd.DataFrame(columns=["Kod","Isim","Marka","Model","Raf","Mevcut"])
+
+
+def stok_guncelle(df):
+    """DataFrame’i geri yazar."""
+    os.makedirs(os.path.dirname(STOK_PATH), exist_ok=True)
+    df.to_excel(STOK_PATH, index=False)
+
+def stok_giris(kod, isim, marka, model, raf, miktar):
+    """Yeni ürün ekler veya mevcut ürüne miktar ekler."""
+    df = stok_yukle()
+
+    # Mevcut ürün mü?
+    mask = df["Kod"].astype(str) == str(kod)
+    if mask.any():
+        # Mevcut ürüne ekle
+        df.loc[mask, "Mevcut"] = df.loc[mask, "Mevcut"].astype(int) + int(miktar)
+    else:
+        # Yeni ürün tüm kolonlarıyla eklenmeli
+        yeni_satir = {
+            "Kod": kod,
+            "Isim": isim,
+            "Marka": marka,
+            "Model": model,
+            "Raf": raf,
+            "Mevcut": int(miktar)
+        }
+        df = pd.concat([df, pd.DataFrame([yeni_satir])], ignore_index=True)
+
+    stok_guncelle(df)
+
+
+def stok_cikis(kod, miktar):
+    """Kod ile ürünü bulup miktar düşer. Eğer çıkış miktarı mevcut stoktan fazlaysa hata verir."""
+    df = stok_yukle()
+    mask = df["Kod"].astype(str) == str(kod)
+    if mask.any():
+        mevcut = int(df.loc[mask, "Mevcut"].iloc[0])
+        miktar = int(miktar)
+
+        if miktar > mevcut:
+            # Fazla çıkış yapılıyor
+            return f"Yetersiz stok. Mevcut: {mevcut}"
+
+        # Normal çıkış
+        df.loc[mask, "Mevcut"] = mevcut - miktar
+        stok_guncelle(df)
+        return True
+    return False
+
+
+# ##tree view style
+#
+# def style_treeview(tree):
+#     """Treeview'e modern stil uygula (alternatif satır renkleri)."""
+#     style = ttk.Style()
+#     style.configure("Treeview",
+#                     background="white",
+#                     foreground="black",
+#                     rowheight=25,
+#                     fieldbackground="white")
+#     style.map("Treeview",
+#               background=[("selected", "#3498db")],
+#               foreground=[("selected", "white")])
+#
+#     # Alternatif satır renkleri
+#     tree.tag_configure("oddrow", background="#f2f2f2")
+#     tree.tag_configure("evenrow", background="#ffffff")
+#
+#     # Satır eklerken:
+#     # tag = "oddrow" if index % 2 else "evenrow"
+#     # tree.insert("", "end", values=values, tags=(tag,))
+
